@@ -198,14 +198,6 @@ type ImageExportRequest = {
   branding?: boolean;
 };
 
-const bytesToBase64 = (bytes: Uint8Array) => {
-  let binary = "";
-  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
-  }
-  return btoa(binary);
-};
-
 const fallbackPromptParameterKind = (action: AiAction): AiPromptParameterKind =>
   action === "translate" ? "target-language" : action === "change-tone" ? "tone" : "none";
 
@@ -1375,23 +1367,21 @@ function LocalTiptapEditorImpl(props: LocalTiptapEditorProps) {
             throw new Error("NOTE_IMAGE_RENDER_FAILED");
           }
         }
-        const blob = await new Promise<Blob>((resolve, reject) => {
-          canvas.toBlob(
-            (result) => result ? resolve(result) : reject(new Error("Image renderer returned an empty file")),
-            request.format === "jpeg" ? "image/jpeg" : "image/png",
-            request.format === "jpeg" ? 0.92 : 1,
-          );
-        });
-
         const extension = request.format === "jpeg" ? "jpg" : "png";
         const basename = buildImageExportBasename(request.title, request.fallbackTitle);
         const filename = `${basename}.${extension}`;
         const mimeType = request.format === "jpeg" ? "image/jpeg" : "image/png";
+        // Android WebView can take many seconds to return canvas.toBlob for a
+        // long note. This encodes promptly and gives the bridge base64 directly.
+        const dataUrl = canvas.toDataURL(mimeType, request.format === "jpeg" ? 0.92 : 1);
+        const dataUrlPrefix = `data:${mimeType};base64,`;
+        if (!dataUrl.startsWith(dataUrlPrefix)) throw new Error("Image renderer returned an empty file");
+        const base64 = dataUrl.slice(dataUrlPrefix.length);
 
         reportProgress("transfer");
-        for (let offset = 0; offset < blob.size; offset += IMAGE_EXPORT_CHUNK_BYTES) {
-          const bytes = new Uint8Array(await blob.slice(offset, offset + IMAGE_EXPORT_CHUNK_BYTES).arrayBuffer());
-          await notify({ type: "chunk", chunk: bytesToBase64(bytes) });
+        const chunkChars = (IMAGE_EXPORT_CHUNK_BYTES / 3) * 4;
+        for (let offset = 0; offset < base64.length; offset += chunkChars) {
+          await notify({ type: "chunk", chunk: base64.slice(offset, offset + chunkChars) });
         }
         await notify({
           type: "complete",
