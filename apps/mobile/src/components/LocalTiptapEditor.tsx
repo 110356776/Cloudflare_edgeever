@@ -87,6 +87,7 @@ import {
   generateCardCss,
 } from "@edgeever/shared/note-image-card";
 import { useDOMImperativeHandle, type DOMImperativeFactory, type DOMProps } from "expo/dom";
+import { toCanvas } from "html-to-image";
 import { createImageInsertTransaction, createNativeImageGalleryView, groupUploadedImages, NATIVE_IMAGE_GALLERY_CSS } from "@edgeever/shared/native-image-gallery";
 import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type ReactNode, type Ref, type SetStateAction } from "react";
 import {
@@ -1239,18 +1240,22 @@ function LocalTiptapEditorImpl(props: LocalTiptapEditorProps) {
   const exportImage = useCallback((requestJsonValue: DOMValue) => {
     if (typeof requestJsonValue !== "string" || !editor || editor.isDestroyed || !onImageExportEventRef.current) return;
 
+    let request: ImageExportRequest;
+    try {
+      request = JSON.parse(requestJsonValue) as ImageExportRequest;
+      if (!request.requestId || (request.format !== "png" && request.format !== "jpeg")) return;
+    } catch {
+      return;
+    }
+
+    const notify = (payload: Record<string, unknown>) =>
+      onImageExportEventRef.current?.(JSON.stringify({ requestId: request.requestId, ...payload }));
+    const reportProgress = (stage: "prepare" | "render" | "transfer") => {
+      void Promise.resolve(notify({ type: "progress", stage })).catch(() => {});
+    };
+
     void (async () => {
-      let request: ImageExportRequest;
-      try {
-        request = JSON.parse(requestJsonValue) as ImageExportRequest;
-        if (!request.requestId || (request.format !== "png" && request.format !== "jpeg")) return;
-      } catch {
-        return;
-      }
-
-      const notify = (payload: Record<string, unknown>) =>
-        onImageExportEventRef.current?.(JSON.stringify({ requestId: request.requestId, ...payload }));
-
+      reportProgress("prepare");
       const resolvedTheme = resolveTheme(request.background, request.theme);
       const fontStyle = request.fontStyle ?? "serif";
       const fontSize = request.fontSize ?? "lg";
@@ -1326,7 +1331,7 @@ function LocalTiptapEditorImpl(props: LocalTiptapEditorProps) {
         }
         const backgroundColor = NOTE_IMAGE_BACKGROUND_COLORS[resolvedTheme] || themeCfg.canvasBg;
 
-        const { toCanvas } = await import("html-to-image");
+        reportProgress("render");
         const canvas = await toCanvas(captureRoot, {
           backgroundColor,
           cacheBust: false,
@@ -1348,6 +1353,7 @@ function LocalTiptapEditorImpl(props: LocalTiptapEditorProps) {
         const filename = `${basename}.${extension}`;
         const mimeType = request.format === "jpeg" ? "image/jpeg" : "image/png";
 
+        reportProgress("transfer");
         for (let offset = 0; offset < blob.size; offset += IMAGE_EXPORT_CHUNK_BYTES) {
           const bytes = new Uint8Array(await blob.slice(offset, offset + IMAGE_EXPORT_CHUNK_BYTES).arrayBuffer());
           await notify({ type: "chunk", chunk: bytesToBase64(bytes) });
@@ -1366,7 +1372,9 @@ function LocalTiptapEditorImpl(props: LocalTiptapEditorProps) {
       } finally {
         host.remove();
       }
-    })();
+    })().catch((error: unknown) => {
+      void notify({ type: "error", message: error instanceof Error ? error.message : "Image export failed" });
+    });
   }, [editor]);
 
   useDOMImperativeHandle(

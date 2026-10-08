@@ -51,6 +51,7 @@ const IMAGE_EXPORT_TIMEOUT_MS = 60_000;
 
 type MobileImageExportEvent =
   | { type: "chunk"; requestId: string; chunk: string }
+  | { type: "progress"; requestId: string; stage: "prepare" | "render" | "transfer" }
   | {
       type: "complete";
       requestId: string;
@@ -484,6 +485,7 @@ export const MemoDetailModal = ({
   const [viewerReady, setViewerReady] = useState(false);
   const [titleCollapsed, setTitleCollapsed] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
+  const [imageExportStage, setImageExportStage] = useState<"prepare" | "render" | "transfer">("prepare");
   const [imageShareOptionsOpen, setImageShareOptionsOpen] = useState(false);
   const [imageShareFormat, setImageShareFormat] = useState<"jpeg" | "png">("png");
   const [imageShareTheme, setImageShareTheme] = useState<NoteImageTheme>("slate");
@@ -701,8 +703,8 @@ export const MemoDetailModal = ({
 
   const closeImagePreview = () => {
     setPreparedNoteImage(null);
+    setImageShareOptionsOpen(false);
     if (imageShareFromList) {
-      setImageShareOptionsOpen(false);
       onClose();
     }
   };
@@ -839,6 +841,10 @@ export const MemoDetailModal = ({
       return;
     }
     if (!event.requestId || event.requestId !== imageExportRequestRef.current) return;
+    if (event.type === "progress") {
+      setImageExportStage(event.stage);
+      return;
+    }
     if (event.type === "chunk") {
       imageExportChunksRef.current.push(event.chunk);
       return;
@@ -914,6 +920,7 @@ export const MemoDetailModal = ({
     imageExportRequestRef.current = requestId;
     imageExportChunksRef.current = [];
     imageExportIntentRef.current = options.intent ?? "share";
+    setImageExportStage("prepare");
     setIsExportingImage(true);
     imageExportTimeoutRef.current = setTimeout(() => {
       if (imageExportRequestRef.current !== requestId) return;
@@ -1464,7 +1471,57 @@ export const MemoDetailModal = ({
             </Pressable>
           </Modal>
         ) : null}
-        <Modal animationType="fade" onRequestClose={closeImageShareOptions} transparent visible={imageShareOptionsOpen}>
+        <Modal animationType="fade" onRequestClose={preparedNoteImage ? closeImagePreview : closeImageShareOptions} transparent visible={imageShareOptionsOpen || Boolean(preparedNoteImage)}>
+          {preparedNoteImage ? (
+          <SafeAreaView style={imageShareStyles.previewSafeArea}>
+            <View style={imageShareStyles.previewHeader}>
+              <Text style={imageShareStyles.previewTitle}>{resolvedLocale !== "zh-CN" ? "Image preview" : "图片预览"}</Text>
+              <Pressable accessibilityLabel={resolvedLocale !== "zh-CN" ? "Close preview" : "关闭预览"} accessibilityRole="button" onPress={closeImagePreview} style={imageShareStyles.previewCloseButton}>
+                <X color="#0f172a" size={22} />
+              </Pressable>
+            </View>
+            <ScrollView contentContainerStyle={imageShareStyles.previewScrollContent} style={imageShareStyles.previewScroll}>
+              <RNImage
+                resizeMode="contain"
+                source={{ uri: preparedNoteImage.uri }}
+                style={[
+                  imageShareStyles.previewImage,
+                  preparedNoteImage.width > 0 && preparedNoteImage.height > 0
+                    ? { aspectRatio: preparedNoteImage.width / preparedNoteImage.height }
+                    : null,
+                ]}
+              />
+              {preparedNoteImage.failedImages > 0 ? (
+                <Text style={imageShareStyles.previewWarning}>
+                  {resolvedLocale !== "zh-CN"
+                    ? `${preparedNoteImage.failedImages} of ${preparedNoteImage.totalImages} note image(s) could not be included.`
+                    : `笔记中的 ${preparedNoteImage.totalImages} 张图片有 ${preparedNoteImage.failedImages} 张未能包含。`}
+                </Text>
+              ) : null}
+              {preparedNoteImage.height > 12_000 ? (
+                <Text style={imageShareStyles.previewWarning}>
+                  {resolvedLocale !== "zh-CN"
+                    ? "This is a long image. Some social apps may reduce its quality; keep the saved original."
+                    : "图片较长，部分社交平台可能会压缩画质；建议保留保存的原图。"}
+                </Text>
+              ) : null}
+            </ScrollView>
+            <View style={imageShareStyles.previewActions}>
+              <Pressable accessibilityRole="button" onPress={() => void copyPreparedNoteImage(preparedNoteImage)} style={imageShareStyles.previewSecondaryButton}>
+                <Copy color="#0f172a" size={18} />
+                <Text style={imageShareStyles.previewSecondaryButtonText}>{resolvedLocale !== "zh-CN" ? "Copy" : "复制图片"}</Text>
+              </Pressable>
+              <Pressable accessibilityRole="button" onPress={() => void savePreparedNoteImage(preparedNoteImage)} style={imageShareStyles.previewSecondaryButton}>
+                <Download color="#0f172a" size={18} />
+                <Text style={imageShareStyles.previewSecondaryButtonText}>{resolvedLocale !== "zh-CN" ? "Save" : "保存图片"}</Text>
+              </Pressable>
+              <Pressable accessibilityRole="button" onPress={() => void sharePreparedNoteImage(preparedNoteImage)} style={imageShareStyles.previewPrimaryButton}>
+                <Share2 color="#ffffff" size={18} />
+                <Text style={imageShareStyles.previewPrimaryButtonText}>{resolvedLocale !== "zh-CN" ? "Share" : "系统分享"}</Text>
+              </Pressable>
+            </View>
+          </SafeAreaView>
+          ) : (
           <Pressable
             onPress={closeImageShareOptions}
             style={[
@@ -1580,7 +1637,6 @@ export const MemoDetailModal = ({
                 accessibilityRole="button"
                 disabled={isExportingImage || !viewerReady}
                 onPress={() => {
-                  setImageShareOptionsOpen(false);
                   exportMemoImage(imageShareFormat, {
                     theme: imageShareTheme,
                     fontStyle: imageShareFontStyle,
@@ -1596,9 +1652,15 @@ export const MemoDetailModal = ({
                 }}
                 style={[imageShareStyles.shareButton, (isExportingImage || !viewerReady) && styles.buttonDisabled]}
               >
-                <Share2 color="#ffffff" size={18} />
+                {isExportingImage ? <ActivityIndicator color="#ffffff" size="small" /> : <Share2 color="#ffffff" size={18} />}
                 <Text style={imageShareStyles.shareButtonText}>
-                  {!viewerReady
+                  {isExportingImage
+                    ? (imageExportStage === "render"
+                      ? (resolvedLocale !== "zh-CN" ? "Rendering image…" : "正在渲染图片…")
+                      : imageExportStage === "transfer"
+                        ? (resolvedLocale !== "zh-CN" ? "Saving preview…" : "正在保存预览…")
+                        : (resolvedLocale !== "zh-CN" ? "Preparing image…" : "正在准备图片…"))
+                    : !viewerReady
                     ? (resolvedLocale !== "zh-CN" ? "Preparing note…" : "正在准备笔记…")
                     : (resolvedLocale !== "zh-CN" ? "Generate preview" : "生成预览")}
                 </Text>
@@ -1606,60 +1668,7 @@ export const MemoDetailModal = ({
               </ScrollView>
             </Pressable>
           </Pressable>
-        </Modal>
-        <Modal animationType="slide" onRequestClose={closeImagePreview} presentationStyle="fullScreen" visible={Boolean(preparedNoteImage)}>
-          <SafeAreaView style={imageShareStyles.previewSafeArea}>
-            <View style={imageShareStyles.previewHeader}>
-              <Text style={imageShareStyles.previewTitle}>{resolvedLocale !== "zh-CN" ? "Image preview" : "图片预览"}</Text>
-              <Pressable accessibilityLabel={resolvedLocale !== "zh-CN" ? "Close preview" : "关闭预览"} accessibilityRole="button" onPress={closeImagePreview} style={imageShareStyles.previewCloseButton}>
-                <X color="#0f172a" size={22} />
-              </Pressable>
-            </View>
-            {preparedNoteImage ? (
-              <>
-                <ScrollView contentContainerStyle={imageShareStyles.previewScrollContent} style={imageShareStyles.previewScroll}>
-                  <RNImage
-                    resizeMode="contain"
-                    source={{ uri: preparedNoteImage.uri }}
-                    style={[
-                      imageShareStyles.previewImage,
-                      preparedNoteImage.width > 0 && preparedNoteImage.height > 0
-                        ? { aspectRatio: preparedNoteImage.width / preparedNoteImage.height }
-                        : null,
-                    ]}
-                  />
-                  {preparedNoteImage.failedImages > 0 ? (
-                    <Text style={imageShareStyles.previewWarning}>
-                      {resolvedLocale !== "zh-CN"
-                        ? `${preparedNoteImage.failedImages} of ${preparedNoteImage.totalImages} note image(s) could not be included.`
-                        : `笔记中的 ${preparedNoteImage.totalImages} 张图片有 ${preparedNoteImage.failedImages} 张未能包含。`}
-                    </Text>
-                  ) : null}
-                  {preparedNoteImage.height > 12_000 ? (
-                    <Text style={imageShareStyles.previewWarning}>
-                      {resolvedLocale !== "zh-CN"
-                        ? "This is a long image. Some social apps may reduce its quality; keep the saved original."
-                        : "图片较长，部分社交平台可能会压缩画质；建议保留保存的原图。"}
-                    </Text>
-                  ) : null}
-                </ScrollView>
-                <View style={imageShareStyles.previewActions}>
-                  <Pressable accessibilityRole="button" onPress={() => void copyPreparedNoteImage(preparedNoteImage)} style={imageShareStyles.previewSecondaryButton}>
-                    <Copy color="#0f172a" size={18} />
-                    <Text style={imageShareStyles.previewSecondaryButtonText}>{resolvedLocale !== "zh-CN" ? "Copy" : "复制图片"}</Text>
-                  </Pressable>
-                  <Pressable accessibilityRole="button" onPress={() => void savePreparedNoteImage(preparedNoteImage)} style={imageShareStyles.previewSecondaryButton}>
-                    <Download color="#0f172a" size={18} />
-                    <Text style={imageShareStyles.previewSecondaryButtonText}>{resolvedLocale !== "zh-CN" ? "Save" : "保存图片"}</Text>
-                  </Pressable>
-                  <Pressable accessibilityRole="button" onPress={() => void sharePreparedNoteImage(preparedNoteImage)} style={imageShareStyles.previewPrimaryButton}>
-                    <Share2 color="#ffffff" size={18} />
-                    <Text style={imageShareStyles.previewPrimaryButtonText}>{resolvedLocale !== "zh-CN" ? "Share" : "系统分享"}</Text>
-                  </Pressable>
-                </View>
-              </>
-            ) : null}
-          </SafeAreaView>
+          )}
         </Modal>
         {memo && !memo.isDeleted ? (
           <MobileAiAssistantModal
