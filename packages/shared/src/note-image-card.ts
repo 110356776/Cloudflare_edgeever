@@ -14,6 +14,26 @@ export const NOTE_IMAGE_CARD_WIDTH_PIXELS: Record<NoteImageCardWidth, number> = 
   wide: 800,
 };
 
+/** Bound a complete note card to dimensions that native WebViews can rasterize. */
+export const planNativeNoteImageRender = (width: number, height: number) => {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    throw new Error("Invalid note image dimensions");
+  }
+
+  const sourceScale = Math.min(1, 15_000 / height);
+  if (sourceScale < 0.5) throw new Error("NOTE_IMAGE_TOO_LONG");
+
+  const sourceWidth = Math.max(1, Math.floor(width * sourceScale));
+  const sourceHeight = Math.max(1, Math.floor(height * sourceScale));
+  const pixelRatio = Math.min(
+    2,
+    15_000 / sourceHeight,
+    Math.sqrt(12_000_000 / (sourceWidth * sourceHeight)),
+  );
+
+  return { pixelRatio, sourceHeight, sourceScale, sourceWidth };
+};
+
 const WINDOWS_RESERVED_NAME = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i;
 
 export const NOTE_IMAGE_BACKGROUND_COLORS: Record<NoteImageBackground, string> = {
