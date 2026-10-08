@@ -361,7 +361,10 @@ const renderWithBeautifulMermaid = async (source: string, theme: "light" | "dark
       ...THEMES[theme === "dark" ? "zinc-dark" : "zinc-light"],
       transparent: true,
       font: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-      padding: 24,
+      padding: 12,
+      nodeSpacing: 16,
+      layerSpacing: 28,
+      componentSpacing: 16,
     });
   } catch {
     return null;
@@ -2451,6 +2454,7 @@ const createMobileCodeBlockExtension = (
                 suppressErrorRendering: true,
                 theme: "base",
                 themeVariables: getMobileMermaidThemeVariables(theme),
+                flowchart: { nodeSpacing: 25, rankSpacing: 30 },
               });
               const valid = await mermaid.parse(source, { suppressErrors: true });
               if (!valid) {
@@ -3360,7 +3364,7 @@ const getEditorStyles = (theme: "light" | "dark", options?: { viewer?: boolean }
   .edgeever-x6-diagram .x6-node { cursor: pointer; }
   .edgeever-mermaid-code-block > pre { display: none; margin: 8px 0 0; }
   .edgeever-mermaid-code-block.is-source-visible > pre { display: block; }
-  .edgeever-mermaid-preview { display: flex; min-height: 104px; align-items: center; justify-content: flex-start; overflow-x: auto; padding: 16px 4px; background: transparent; }
+  .edgeever-mermaid-preview { display: flex; min-height: 72px; align-items: center; justify-content: flex-start; overflow-x: auto; padding: 8px 4px; background: transparent; }
   .edgeever-mermaid-preview[hidden] { display: none; }
   .edgeever-mermaid-svg { display: flex; width: max-content; min-width: 100%; flex: none; justify-content: center; }
   .edgeever-mermaid-svg svg { display: block; max-width: none; max-height: none; flex: none; }

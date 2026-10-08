@@ -277,6 +277,7 @@ async function renderMermaidBlocks(root: HTMLElement, theme: "light" | "dark") {
     startOnLoad: false,
     securityLevel: "strict",
     theme: theme === "dark" ? "dark" : "default",
+    flowchart: { nodeSpacing: 25, rankSpacing: 30 },
   });
 
   let i = 0;
