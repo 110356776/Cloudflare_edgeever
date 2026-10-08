@@ -826,6 +826,10 @@ export const MemoDetailModal = ({
       ? (resolvedLocale !== "zh-CN"
           ? "This note is too long for one readable image. Choose a smaller font size or split the note."
           : "这篇笔记太长，无法生成清晰的单张图片。请调小导出字号，或拆分笔记后重试。")
+      : message === "NOTE_IMAGE_RENDER_FAILED"
+        ? (resolvedLocale !== "zh-CN"
+            ? "This image could not be rendered on this device. Try a smaller font size or a shorter note."
+            : "这台设备无法渲染这张图片。请调小导出字号，或缩短笔记后重试。")
       : message;
     Alert.alert(
       resolvedLocale !== "zh-CN" ? "Image export failed" : "导出笔记图片失败",

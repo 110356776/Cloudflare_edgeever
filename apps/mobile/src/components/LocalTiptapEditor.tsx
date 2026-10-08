@@ -1253,6 +1253,7 @@ function LocalTiptapEditorImpl(props: LocalTiptapEditorProps) {
     const reportProgress = (stage: "prepare" | "render" | "transfer") => {
       void Promise.resolve(notify({ type: "progress", stage })).catch(() => {});
     };
+    const missingImagePlaceholder = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
 
     void (async () => {
       reportProgress("prepare");
@@ -1319,7 +1320,9 @@ function LocalTiptapEditorImpl(props: LocalTiptapEditorProps) {
         const failedImages = exportedImages.filter((image) => !image.complete || image.naturalWidth === 0).length;
         const totalHeight = Math.max(1, Math.ceil(documentRoot.getBoundingClientRect().height));
         const renderPlan = planMobileNoteImageRender(targetWidth, totalHeight);
+        let embedFailedImages = 0;
         let captureRoot = documentRoot;
+        let captureWrapper: HTMLDivElement | null = null;
         if (renderPlan.sourceScale < 1) {
           const wrapper = document.createElement("div");
           wrapper.style.cssText = `position:relative;width:${renderPlan.sourceWidth}px;height:${renderPlan.sourceHeight}px;overflow:hidden;`;
@@ -1328,18 +1331,50 @@ function LocalTiptapEditorImpl(props: LocalTiptapEditorProps) {
           documentRoot.style.transform = `scale(${renderPlan.sourceScale})`;
           documentRoot.style.transformOrigin = "top left";
           captureRoot = wrapper;
+          captureWrapper = wrapper;
         }
         const backgroundColor = NOTE_IMAGE_BACKGROUND_COLORS[resolvedTheme] || themeCfg.canvasBg;
 
         reportProgress("render");
-        const canvas = await toCanvas(captureRoot, {
+        const renderCanvas = (root: HTMLElement, width: number, height: number) => toCanvas(root, {
           backgroundColor,
           cacheBust: false,
-          height: renderPlan.sourceHeight,
+          height,
+          imagePlaceholder: missingImagePlaceholder,
+          onImageErrorHandler: (event) => {
+            embedFailedImages += 1;
+            if (event instanceof Event && event.target instanceof HTMLImageElement) {
+              event.target.src = missingImagePlaceholder;
+            }
+          },
           pixelRatio: renderPlan.pixelRatio,
           skipFonts: true,
-          width: renderPlan.sourceWidth,
+          width,
         });
+        let canvas: HTMLCanvasElement;
+        try {
+          canvas = await renderCanvas(captureRoot, renderPlan.sourceWidth, renderPlan.sourceHeight);
+        } catch {
+          // Android WebView can reject a large SVG image without an Error message.
+          // Try a smaller source once while keeping the entire card visible.
+          const retryScale = renderPlan.sourceScale * 0.75;
+          const retryWidth = Math.max(1, Math.floor(targetWidth * retryScale));
+          const retryHeight = Math.max(1, Math.floor(totalHeight * retryScale));
+          if (retryScale < 0.5) throw new Error("NOTE_IMAGE_RENDER_FAILED");
+          if (!captureWrapper) {
+            captureWrapper = document.createElement("div");
+            documentRoot.replaceWith(captureWrapper);
+            captureWrapper.appendChild(documentRoot);
+          }
+          captureWrapper.style.cssText = `position:relative;width:${retryWidth}px;height:${retryHeight}px;overflow:hidden;`;
+          documentRoot.style.transform = `scale(${retryScale})`;
+          documentRoot.style.transformOrigin = "top left";
+          try {
+            canvas = await renderCanvas(captureWrapper, retryWidth, retryHeight);
+          } catch {
+            throw new Error("NOTE_IMAGE_RENDER_FAILED");
+          }
+        }
         const blob = await new Promise<Blob>((resolve, reject) => {
           canvas.toBlob(
             (result) => result ? resolve(result) : reject(new Error("Image renderer returned an empty file")),
@@ -1365,7 +1400,7 @@ function LocalTiptapEditorImpl(props: LocalTiptapEditorProps) {
           width: canvas.width,
           height: canvas.height,
           totalImages: exportedImages.length,
-          failedImages,
+          failedImages: Math.min(exportedImages.length, failedImages + embedFailedImages),
         });
       } catch (error) {
         await notify({ type: "error", message: error instanceof Error ? error.message : "Image export failed" });
