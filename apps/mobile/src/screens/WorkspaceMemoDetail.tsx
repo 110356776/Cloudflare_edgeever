@@ -510,7 +510,7 @@ export const MemoDetailModal = ({
   const [imageShareTheme, setImageShareTheme] = useState<NoteImageTheme>("aurora");
   const [imageShareFontStyle, setImageShareFontStyle] = useState<NoteImageFontStyle>("serif");
   const [imageShareFontSize, setImageShareFontSize] = useState<NoteImageFontSize>("lg");
-  const [imageShareCardWidth, setImageShareCardWidth] = useState<NoteImageCardWidth>("standard");
+  const [imageShareCardWidth, setImageShareCardWidth] = useState<NoteImageCardWidth>("wide");
   const [imageShareTitle, setImageShareTitle] = useState(true);
   const [imageShareNotebook, setImageShareNotebook] = useState(false);
   const [imageShareTags, setImageShareTags] = useState(false);
@@ -971,7 +971,7 @@ export const MemoDetailModal = ({
       theme: options.theme ?? "aurora",
       fontStyle: options.fontStyle ?? "serif",
       fontSize: options.fontSize ?? "lg",
-      cardWidth: options.cardWidth ?? "standard",
+      cardWidth: options.cardWidth ?? "wide",
       showTitle: options.showTitle ?? true,
       showNotebook: options.showNotebook ?? false,
       showTags: options.showTags ?? false,

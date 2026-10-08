@@ -445,7 +445,7 @@ export const generateCardCss = ({
   theme = "aurora",
   fontStyle = "serif",
   fontSize = "lg",
-  cardWidth = "standard",
+  cardWidth = "wide",
 }: {
   theme: NoteImageTheme;
   fontStyle: NoteImageFontStyle;
@@ -455,7 +455,7 @@ export const generateCardCss = ({
   const themeCfg = NOTE_IMAGE_THEMES[theme] || NOTE_IMAGE_THEMES.aurora;
   const fontFam = NOTE_IMAGE_FONT_FAMILIES[fontStyle] || NOTE_IMAGE_FONT_FAMILIES.sans;
   const sizeCfg = NOTE_IMAGE_FONT_SIZES[fontSize] || NOTE_IMAGE_FONT_SIZES.md;
-  const widthPx = NOTE_IMAGE_CARD_WIDTH_PIXELS[cardWidth] || 680;
+  const widthPx = NOTE_IMAGE_CARD_WIDTH_PIXELS[cardWidth] || NOTE_IMAGE_CARD_WIDTH_PIXELS.wide;
 
   return `
     :root {

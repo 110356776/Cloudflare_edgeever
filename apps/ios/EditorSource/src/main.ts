@@ -1235,8 +1235,8 @@ async function exportNoteImage(request: ImageExportRequest) {
   const resolvedTheme = resolveTheme(request.background, request.theme);
   const fontStyle = request.fontStyle ?? "serif";
   const fontSize = request.fontSize ?? "lg";
-  const cardWidth = request.cardWidth ?? "standard";
-  const targetWidth = NOTE_IMAGE_CARD_WIDTH_PIXELS[cardWidth] || 680;
+  const cardWidth = request.cardWidth ?? "wide";
+  const targetWidth = NOTE_IMAGE_CARD_WIDTH_PIXELS[cardWidth] || NOTE_IMAGE_CARD_WIDTH_PIXELS.wide;
   const themeCfg = NOTE_IMAGE_THEMES[resolvedTheme] || NOTE_IMAGE_THEMES.aurora;
 
   const editorClone = editor.view.dom.cloneNode(true) as HTMLElement;

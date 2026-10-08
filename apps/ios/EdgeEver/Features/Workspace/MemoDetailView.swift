@@ -26,7 +26,7 @@ struct MemoDetailView: View {
     @State private var imageShareTheme = "aurora"
     @State private var imageShareFontStyle = "serif"
     @State private var imageShareFontSize = "lg"
-    @State private var imageShareCardWidth = "standard"
+    @State private var imageShareCardWidth = "wide"
     @State private var imageShareTitle = true
     @State private var imageShareNotebook = false
     @State private var imageShareTags = false
@@ -1151,7 +1151,7 @@ struct MemoDetailView: View {
         theme: String = "aurora",
         fontStyle: String = "serif",
         fontSize: String = "lg",
-        cardWidth: String = "standard",
+        cardWidth: String = "wide",
         showTitle: Bool = true,
         showNotebook: Bool = false,
         showTags: Bool = false,

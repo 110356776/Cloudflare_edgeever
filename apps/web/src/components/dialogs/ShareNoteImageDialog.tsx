@@ -76,7 +76,7 @@ export const ShareNoteImageDialog = ({
   const [theme, setTheme] = useState<NoteImageTheme>("aurora");
   const [fontStyle, setFontStyle] = useState<NoteImageFontStyle>("serif");
   const [fontSize, setFontSize] = useState<NoteImageFontSize>("lg");
-  const [cardWidth, setCardWidth] = useState<NoteImageCardWidth>("standard");
+  const [cardWidth, setCardWidth] = useState<NoteImageCardWidth>("wide");
   const [showTitle, setShowTitle] = useState(true);
   const [showNotebook, setShowNotebook] = useState(false);
   const [showTags, setShowTags] = useState(false);
@@ -95,7 +95,7 @@ export const ShareNoteImageDialog = ({
     setTheme("aurora");
     setFontStyle("serif");
     setFontSize("lg");
-    setCardWidth("standard");
+    setCardWidth("wide");
     setShowTitle(true);
     setShowNotebook(false);
     setShowTags(false);
