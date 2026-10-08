@@ -2015,6 +2015,12 @@ export const pl = {
     previous: "Poprzedni PDF",
     next: "Następny PDF",
   },
+  wordViewer: {
+    loading: "Wczytywanie podglądu Word…",
+    unavailable: "Nie można wyświetlić podglądu tego dokumentu Word. Nadal możesz go pobrać lub otworzyć w innej aplikacji.",
+    previewTooLarge: "Podgląd wyłączony powyżej 10 MiB",
+    previewLabel: "Podgląd Word: {{filename}}",
+  },
   audioPlayer: {
     label: "Odtwarzacz audio: {{filename}}",
     unavailable: "Tego formatu audio nie można odtworzyć na tym urządzeniu. Nadal możesz go pobrać lub otworzyć w innej aplikacji.",

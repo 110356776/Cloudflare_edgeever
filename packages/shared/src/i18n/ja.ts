@@ -2015,6 +2015,12 @@ export const ja = {
     previous: "前の PDF",
     next: "次の PDF",
   },
+  wordViewer: {
+    loading: "Word のプレビューを読み込み中…",
+    unavailable: "この Word 文書はプレビューできません。ダウンロードするか、外部で開くことはできます。",
+    previewTooLarge: "10 MiB 超のためプレビューしません",
+    previewLabel: "Word プレビュー：{{filename}}",
+  },
   audioPlayer: {
     label: "音声プレーヤー：{{filename}}",
     unavailable: "この端末ではこの音声形式を再生できません。ダウンロードするか、外部で開くことはできます。",

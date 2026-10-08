@@ -2015,6 +2015,12 @@ export const zhCN = {
     previous: "上一个 PDF",
     next: "下一个 PDF",
   },
+  wordViewer: {
+    loading: "正在加载 Word 预览…",
+    unavailable: "无法预览此 Word 文档，你仍可下载或在外部打开。",
+    previewTooLarge: "超过 10 MiB，不在笔记内预览",
+    previewLabel: "Word 预览：{{filename}}",
+  },
   audioPlayer: {
     label: "音频播放器：{{filename}}",
     unavailable: "当前设备无法播放此音频格式，你仍可下载或在外部打开。",

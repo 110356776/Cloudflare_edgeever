@@ -2015,6 +2015,12 @@ export const enUS = {
     previous: "Previous PDF",
     next: "Next PDF",
   },
+  wordViewer: {
+    loading: "Loading Word preview…",
+    unavailable: "This Word document cannot be previewed. You can still download it or open it externally.",
+    previewTooLarge: "Preview disabled over 10 MiB",
+    previewLabel: "Word preview: {{filename}}",
+  },
   audioPlayer: {
     label: "Audio player: {{filename}}",
     unavailable: "This audio format cannot be played on this device. You can still download it or open it externally.",
