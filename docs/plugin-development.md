@@ -16,15 +16,18 @@ EdgeEver provides client plugin and no-code theme extension capabilities. Users 
   - [Available Permissions](#available-permissions)
 - [Plugin Entry & Lifecycle](#plugin-entry--lifecycle)
 - [API Reference](#api-reference)
+  - [API Namespace Quick Reference](#api-namespace-quick-reference)
   - [1. Notes & Notebooks](#1-notes--notebooks)
-  - [2. Resources & Attachments](#2-resources--attachments)
-  - [3. Editor & Embeds](#3-editor--embeds)
-  - [4. UI, Commands & Panels](#4-ui-commands--panels)
-  - [5. Settings](#5-settings)
-  - [6. Storage & Secrets](#6-storage--secrets)
-  - [7. Network Requests](#7-network-requests)
-  - [8. Schedules (Desktop Only)](#8-schedules-desktop-only)
-  - [9. Events](#9-events)
+  - [2. Templates](#2-templates)
+  - [3. Resources & Attachments](#3-resources--attachments)
+  - [4. Editor & Embeds](#4-editor--embeds)
+  - [5. UI, Commands & Panels](#5-ui-commands--panels)
+  - [6. Settings](#6-settings)
+  - [7. Storage & Secrets](#7-storage--secrets)
+  - [8. Network Requests](#8-network-requests)
+  - [9. Schedules (Desktop Only)](#9-schedules-desktop-only)
+  - [10. Events](#10-events)
+  - [11. AI Capabilities](#11-ai-capabilities)
 - [Themes (No-Code Extensions)](#themes-no-code-extensions)
 - [Packaging, Distribution & Local Testing](#packaging-distribution--local-testing)
   - [Packaging Rules](#packaging-rules)
@@ -82,6 +85,7 @@ Permissions are declared to transparently inform users of plugin capabilities:
 - **Editor**: `editor:read`, `editor:write`
 - **UI & Interaction**: `ui:commands`, `ui:navigation`, `ui:notices`, `ui:panels`, `ui:embeds`
 - **Storage & System**: `storage`, `secrets`, `network`, `network:public`, `schedules`
+- **AI Capabilities**: `ai:generate`
 
 ---
 
@@ -131,6 +135,30 @@ export default definePlugin({
 ---
 
 ## API Reference
+
+### API Namespace Quick Reference
+
+The plugin context object (`context`) exposes these capability interfaces:
+
+| Namespace | Permission (Disclosure) | Core Methods | Description |
+| :--- | :--- | :--- | :--- |
+| **`context.notes`** | `notes:read`<br>`notes:write`<br>`notes:delete` | `query()`, `queryContent()`, `get()`, `create()`, `update()`, `editMarkdown()`, `delete()`, `move()`, `pin()`, `restore()`, `revisions` | Query notes, retrieve bodies, optimistic concurrent edits, and revision history |
+| **`context.notebooks`** | `metadata:read`<br>`metadata:write` | `list()`, `create()`, `update()`, `delete()` | Manage notebook trees, hierarchy, and CRUD operations |
+| **`context.tags`** | `metadata:read`<br>`metadata:write` | `list()`, `rename()`, `delete()` | Global tag listing, renaming, and removal |
+| **`context.templates`** | `templates:read`<br>`templates:write` | `list()`, `create()`, `update()`, `delete()`, `use()` | Template management and one-click note creation |
+| **`context.resources`** | `resources:read`<br>`resources:write` | `list()`, `read()`, `upload()`, `update()`, `rename()`, `delete()` | Upload, read, update, and manage note media/file attachments |
+| **`context.editor`** | `editor:read`<br>`editor:write`<br>`ui:embeds` | `getSelection()`, `replaceSelection()`, `insertAtCursor()`, `getDocument()`, `editMarkdown()`, `insertEmbed()`, `embeds.register()` | Active editor manipulation, live document edits, and custom block embeds |
+| **`context.ui`** | `ui:navigation`<br>`ui:notices`<br>`ui:panels` | `showNotice()`, `openNote()`, `panels.register()`, `panels.open()` | Host notifications, precise note navigation, and custom DOM panels |
+| **`context.commands`** | `ui:commands` | `register()` | Register global or editor commands for command palette and menus |
+| **`context.settings`** | *(None)* | `get()`, `set()`, `remove()` | Read and update the plugin's host-rendered settings |
+| **`context.storage`** | `storage` | `get()`, `set()`, `remove()` | Device-local lightweight key-value storage (per workspace & plugin) |
+| **`context.secrets`** | `secrets` | `get()`, `set()`, `remove()` | Device-local encrypted secret storage (API keys, tokens) |
+| **`context.network`** | `network`<br>`network:public` | `fetch(url, options)` | Network requests (standard requests or public anonymous read-only) |
+| **`context.schedules`** | `schedules` | `upsert()`, `list()`, `remove()` | Desktop-only persistent scheduled tasks running while EdgeEver is open |
+| **`context.events`** | *(None)* | `on(event, handler)` | Subscribe to workspace note, tag, template, and sync completion events |
+| **`context.ai`** | `ai:generate` | `status()`, `generate()`, `transcribeResource()`, `transcribeMedia()` | Invoke workspace-configured AI models for text generation & media transcription |
+
+---
 
 ### 1. Notes & Notebooks
 
@@ -213,7 +241,38 @@ await context.tags.delete("unused-tag");
 
 ---
 
-### 2. Resources & Attachments
+### 2. Templates
+
+Manage workspace-shared templates and apply them to create new notes:
+
+```ts
+// List all available templates
+const templates = await context.templates.list();
+
+// Create a template (directly or from an existing noteId)
+const template = await context.templates.create({
+  name: "Meeting Notes",
+  description: "Standard team sync meeting template",
+  contentMarkdown: "## Attendees\n\n## Agenda\n\n## Action Items\n",
+  tags: ["meeting"]
+});
+
+// Update a template
+await context.templates.update(template.id, {
+  name: "Weekly Sync",
+  description: "Weekly team sync notes"
+});
+
+// Apply template to create a new note in target notebook
+const note = await context.templates.use(template.id, targetNotebookId);
+
+// Delete template
+await context.templates.delete(template.id);
+```
+
+---
+
+### 3. Resources & Attachments
 
 Manage images and file attachments associated with notes:
 
@@ -240,7 +299,7 @@ await context.resources.delete(resourceId);
 
 ---
 
-### 3. Editor & Embeds
+### 4. Editor & Embeds
 
 Interact with active editor sessions:
 
@@ -288,7 +347,7 @@ await context.editor.insertEmbed({
 
 ---
 
-### 4. UI, Commands & Panels
+### 5. UI, Commands & Panels
 
 #### Commands
 
@@ -361,7 +420,7 @@ await context.ui.panels.open("task-dashboard", { state: { initialTab: "all" } })
 
 ---
 
-### 5. Settings
+### 6. Settings
 
 Declare settings fields in `manifest.json`; EdgeEver renders the settings UI automatically:
 
@@ -408,7 +467,7 @@ context.events.on("settings.changed", async ({ key }) => {
 
 ---
 
-### 6. Storage & Secrets
+### 7. Storage & Secrets
 
 Isolated per workspace and plugin ID on the current device:
 
@@ -426,7 +485,7 @@ await context.secrets.remove("api_key");
 
 ---
 
-### 7. Network Requests
+### 8. Network Requests
 
 ```ts
 // 1. Standard request (arbitrary HTTP/HTTPS; subject to host CORS policies)
@@ -447,7 +506,7 @@ const xml = await publicRes.text();
 
 ---
 
-### 8. Schedules (Desktop Only)
+### 9. Schedules (Desktop Only)
 
 Desktop plugins can persist scheduled execution of registered commands while EdgeEver is running:
 
@@ -475,7 +534,7 @@ await context.schedules.remove("hourly-sync");
 
 ---
 
-### 9. Events
+### 10. Events
 
 Subscribe to workspace data changes:
 
@@ -488,6 +547,40 @@ context.events.on("note.deleted", ({ noteId }) => console.log("Deleted", noteId)
 // Other events
 context.events.on("tag.changed", () => { /* Tag updated */ });
 context.events.on("workspace.synced", () => { /* Workspace sync completed */ });
+```
+
+---
+
+### 11. AI Capabilities
+
+Invoke workspace-configured AI models for text generation and media transcription (credentials are managed securely by the host; plugins never touch user API keys):
+
+```ts
+// 1. Check AI configuration status
+const status = await context.ai.status();
+// { configured: boolean, modelName?: string }
+
+if (status.configured) {
+  // 2. Text generation
+  const result = await context.ai.generate({
+    system: "You are a writing assistant.",
+    prompt: "Refine this paragraph: ...",
+    maxOutputTokens: 2000,
+    signal: abortController.signal
+  });
+  console.log("Output:", result.text);
+
+  // 3. Transcribe audio/video attachments already in the note
+  const transcript = await context.ai.transcribeResource(noteId, resourceId);
+  // { text: string, resourceId: string, filename: string }
+
+  // 4. Transcribe standalone Blob / File held by the plugin
+  const ownMedia = new File([audioBytes], "recording.mp3", { type: "audio/mpeg" });
+  const mediaTranscript = await context.ai.transcribeMedia(ownMedia, {
+    signal: abortController.signal
+  });
+  console.log("Transcription:", mediaTranscript.text);
+}
 ```
 
 ---

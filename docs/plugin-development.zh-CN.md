@@ -16,15 +16,18 @@ EdgeEver 提供客户端插件与无代码主题扩展能力。用户可从官�
   - [可用权限标识](#可用权限标识)
 - [插件入口与生命周期](#插件入口与生命周期)
 - [API 参考](#api-参考)
+  - [API 命名空间速查](#api-命名空间速查)
   - [1. 笔记与笔记本（Notes & Notebooks）](#1-笔记与笔记本notes--notebooks)
-  - [2. 资源附件（Resources）](#2-资源附件resources)
-  - [3. 编辑器交互（Editor & Embeds）](#3-编辑器交互editor--embeds)
-  - [4. 界面交互（UI, Commands & Panels）](#4-界面交互ui-commands--panels)
-  - [5. 统一设置（Settings）](#5-统一设置settings)
-  - [6. 数据存储与安全凭据（Storage & Secrets）](#6-数据存储与安全凭据storage--secrets)
-  - [7. 网络请求（Network）](#7-网络请求network)
-  - [8. 定时任务（Schedules，仅桌面端）](#8-定时任务schedules仅桌面端)
-  - [9. 事件监听（Events）](#9-事件监听events)
+  - [2. 模板管理（Templates）](#2-模板管理templates)
+  - [3. 资源附件（Resources）](#3-资源附件resources)
+  - [4. 编辑器交互（Editor & Embeds）](#4-编辑器交互editor--embeds)
+  - [5. 界面交互（UI, Commands & Panels）](#5-界面交互ui-commands--panels)
+  - [6. 统一设置（Settings）](#6-统一设置settings)
+  - [7. 数据存储与安全凭据（Storage & Secrets）](#7-数据存储与安全凭据storage--secrets)
+  - [8. 网络请求（Network）](#8-网络请求network)
+  - [9. 定时任务（Schedules，仅桌面端）](#9-定时任务schedules仅桌面端)
+  - [10. 事件监听（Events）](#10-事件监听events)
+  - [11. 人工智能（AI）](#11-人工智能ai)
 - [主题扩展（Theme Manifest）](#主题扩展theme-manifest)
 - [打包、分发与本地开发](#打包分发与本地开发)
   - [打包规范](#打包规范)
@@ -82,6 +85,7 @@ EdgeEver 提供客户端插件与无代码主题扩展能力。用户可从官�
 - **编辑器**：`editor:read`, `editor:write`
 - **界面交互**：`ui:commands`, `ui:navigation`, `ui:notices`, `ui:panels`, `ui:embeds`
 - **存储与系统**：`storage`, `secrets`, `network`, `network:public`, `schedules`
+- **AI 能力**：`ai:generate`
 
 ---
 
@@ -131,6 +135,30 @@ export default definePlugin({
 ---
 
 ## API 参考
+
+### API 命名空间速查
+
+插件上下文对象（`context`）提供以下能力接口：
+
+| 命名空间 | 对应权限（披露用） | 核心方法 | 职责说明 |
+| :--- | :--- | :--- | :--- |
+| **`context.notes`** | `notes:read`<br>`notes:write`<br>`notes:delete` | `query()`, `queryContent()`, `get()`, `create()`, `update()`, `editMarkdown()`, `delete()`, `move()`, `pin()`, `restore()`, `revisions` | 笔记查询、正文读取、乐观并发编辑与版本管理 |
+| **`context.notebooks`** | `metadata:read`<br>`metadata:write` | `list()`, `create()`, `update()`, `delete()` | 笔记本树状层级维护与增删改查 |
+| **`context.tags`** | `metadata:read`<br>`metadata:write` | `list()`, `rename()`, `delete()` | 标签全局查询、重命名与删除 |
+| **`context.templates`** | `templates:read`<br>`templates:write` | `list()`, `create()`, `update()`, `delete()`, `use()` | 模板增删改查及一键套用创建笔记 |
+| **`context.resources`** | `resources:read`<br>`resources:write` | `list()`, `read()`, `upload()`, `update()`, `rename()`, `delete()` | 笔记图片及文件附件上传、下载、修改与管理 |
+| **`context.editor`** | `editor:read`<br>`editor:write`<br>`ui:embeds` | `getSelection()`, `replaceSelection()`, `insertAtCursor()`, `getDocument()`, `editMarkdown()`, `insertEmbed()`, `embeds.register()` | 活动编辑器交互、实时文档修改与自定义块级 Embed |
+| **`context.ui`** | `ui:navigation`<br>`ui:notices`<br>`ui:panels` | `showNotice()`, `openNote()`, `panels.register()`, `panels.open()` | 宿主全局提示、笔记精准跳转与自定义 DOM 面板 |
+| **`context.commands`** | `ui:commands` | `register()` | 注册全局或编辑器命令（命令面板、工具栏快捷菜单） |
+| **`context.settings`** | *(无)* | `get()`, `set()`, `remove()` | 读取与修改插件自身的宿主统一配置项 |
+| **`context.storage`** | `storage` | `get()`, `set()`, `remove()` | 本地轻量键值存储（游标、偏好缓存，按插件与工作区隔离） |
+| **`context.secrets`** | `secrets` | `get()`, `set()`, `remove()` | 本地加密的安全凭据存储（API Key、Token 等敏感数据） |
+| **`context.network`** | `network`<br>`network:public` | `fetch(url, options)` | 网络请求（标准请求或跨域免凭据公开只读） |
+| **`context.schedules`** | `schedules` | `upsert()`, `list()`, `remove()` | 桌面端持久化定时任务调度（应用开启期间运行） |
+| **`context.events`** | *(无)* | `on(event, handler)` | 订阅工作区笔记、标签、模板及同步完成事件 |
+| **`context.ai`** | `ai:generate` | `status()`, `generate()`, `transcribeResource()`, `transcribeMedia()` | 调用工作区配置的 AI 模型生成文本或转录音视频媒体 |
+
+---
 
 ### 1. 笔记与笔记本（Notes & Notebooks）
 
@@ -213,7 +241,38 @@ await context.tags.delete("unused-tag");
 
 ---
 
-### 2. 资源附件（Resources）
+### 2. 模板管理（Templates）
+
+操作工作区内的公共模板或一键套用模板创建新笔记：
+
+```ts
+// 查询所有可用模板
+const templates = await context.templates.list();
+
+// 创建模板（可直接提供内容，或基于已有 noteId 生成）
+const template = await context.templates.create({
+  name: "会议纪要",
+  description: "日常项目例会模板",
+  contentMarkdown: "## 参会人员\n\n## 议题\n\n## 待办行动项\n",
+  tags: ["meeting"]
+});
+
+// 更新模板
+await context.templates.update(template.id, {
+  name: "周会纪要",
+  description: "每周团队例会"
+});
+
+// 套用模板在指定笔记本下创建新笔记
+const note = await context.templates.use(template.id, targetNotebookId);
+
+// 删除模板
+await context.templates.delete(template.id);
+```
+
+---
+
+### 3. 资源附件（Resources）
 
 操作关联到笔记的媒体或文件附件：
 
@@ -240,7 +299,7 @@ await context.resources.delete(resourceId);
 
 ---
 
-### 3. 编辑器交互（Editor & Embeds）
+### 4. 编辑器交互（Editor & Embeds）
 
 用于在用户处于编辑状态时操作当前文档：
 
@@ -288,7 +347,7 @@ await context.editor.insertEmbed({
 
 ---
 
-### 4. 界面交互（UI, Commands & Panels）
+### 5. 界面交互（UI, Commands & Panels）
 
 #### 命令注册
 
@@ -361,7 +420,7 @@ await context.ui.panels.open("task-dashboard", { state: { initialTab: "all" } })
 
 ---
 
-### 5. 统一设置（Settings）
+### 6. 统一设置（Settings）
 
 EdgeEver 由宿主统一渲染插件设置界面。在 `manifest.json` 中声明配置字段，无需手写设置页 UI：
 
@@ -408,7 +467,7 @@ context.events.on("settings.changed", async ({ key }) => {
 
 ---
 
-### 6. 数据存储与安全凭据（Storage & Secrets）
+### 7. 数据存储与安全凭据（Storage & Secrets）
 
 用于插件自身的数据持久化（按工作区与插件 ID 隔离存储在当前设备）：
 
@@ -426,7 +485,7 @@ await context.secrets.remove("api_key");
 
 ---
 
-### 7. 网络请求（Network）
+### 8. 网络请求（Network）
 
 ```ts
 // 1. 标准请求（支持任意 HTTP/HTTPS 请求，受宿主环境 CORS 策略约束）
@@ -447,7 +506,7 @@ const xml = await publicRes.text();
 
 ---
 
-### 8. 定时任务（Schedules，仅桌面端）
+### 9. 定时任务（Schedules，仅桌面端）
 
 桌面端插件可注册定时计划执行已注册的命令（在 EdgeEver 打开期间运行）：
 
@@ -475,7 +534,7 @@ await context.schedules.remove("hourly-sync");
 
 ---
 
-### 9. 事件监听（Events）
+### 10. 事件监听（Events）
 
 订阅工作区的数据变更事件：
 
@@ -488,6 +547,40 @@ context.events.on("note.deleted", ({ noteId }) => console.log("笔记删除", no
 // 监听其他变更
 context.events.on("tag.changed", () => { /* 标签更新 */ });
 context.events.on("workspace.synced", () => { /* 工作区同步完成 */ });
+```
+
+---
+
+### 11. 人工智能（AI）
+
+调用用户当前工作区已配置的 AI 模型生成文本或转录媒体（凭据由宿主安全保管，插件无需知晓用户 API Key）：
+
+```ts
+// 1. 检查 AI 状态与当前配置模型
+const status = await context.ai.status();
+// { configured: boolean, modelName?: string }
+
+if (status.configured) {
+  // 2. 文本生成
+  const result = await context.ai.generate({
+    system: "你是一个专业的文本润色助手。",
+    prompt: "请优化以下段落：...",
+    maxOutputTokens: 2000,
+    signal: abortController.signal
+  });
+  console.log("生成结果:", result.text);
+
+  // 3. 转录笔记内已上传的音视频附件
+  const transcript = await context.ai.transcribeResource(noteId, resourceId);
+  // { text: string, resourceId: string, filename: string }
+
+  // 4. 转录插件持有的独立媒体 Blob / File（无需先上传为笔记附件）
+  const ownMedia = new File([audioBytes], "recording.mp3", { type: "audio/mpeg" });
+  const mediaTranscript = await context.ai.transcribeMedia(ownMedia, {
+    signal: abortController.signal
+  });
+  console.log("音频转录:", mediaTranscript.text);
+}
 ```
 
 ---
