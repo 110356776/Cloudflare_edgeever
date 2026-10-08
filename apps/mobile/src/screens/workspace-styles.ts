@@ -583,6 +583,17 @@ const baseWorkspaceStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 12,
   },
+  memoGridList: {
+    paddingHorizontal: 6,
+  },
+  memoGridCellHalf: {
+    paddingHorizontal: 6,
+    width: "50%",
+  },
+  memoGridCellThird: {
+    paddingHorizontal: 6,
+    width: "33.333333%",
+  },
   memoList: {
     flex: 1,
   },
