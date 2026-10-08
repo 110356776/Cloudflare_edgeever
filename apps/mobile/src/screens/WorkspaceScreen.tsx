@@ -111,7 +111,6 @@ import {
 import { RevisionHistoryModal } from "./WorkspaceRevisionHistory";
 import { CreateMemoModal } from "./WorkspaceEditors";
 import {
-  MemoContextActionsModal,
   NotesActionsModal,
   SelectionActionBar,
   SelectionMoreModal,
@@ -166,7 +165,6 @@ export const WorkspaceScreen = ({
   const [showDescendantNotes, setShowDescendantNotes] = useState<boolean | null>(null);
   const [showDescendantNotesSaveFailed, setShowDescendantNotesSaveFailed] = useState(false);
   const [selectedMemoId, setSelectedMemoId] = useState<string | null>(null);
-  const [contextMemo, setContextMemo] = useState<MemoSummary | null>(null);
   const [imageShareFromList, setImageShareFromList] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
@@ -1268,7 +1266,7 @@ export const WorkspaceScreen = ({
           onMemoPress={handleMemoPress}
           onMemoLongPress={(memo) => {
             Vibration.vibrate(8);
-            setContextMemo(memo);
+            selectSingleMemo(memo.id);
           }}
           onLoadMore={() => {
             const query = searchActive ? searchQuery : memosQuery;
@@ -1344,29 +1342,6 @@ export const WorkspaceScreen = ({
         updateMutation={localUpdateMemoMutation}
         visible={Boolean(selectedMemoId)}
       />
-
-      {contextMemo ? (
-        <MemoContextActionsModal
-          bottomOffset={52 + safeAreaInsets.bottom}
-          canShare={!contextMemo.isDeleted}
-          memoTitle={localizeUntitledMemoTitle(contextMemo.title, resolvedLocale)}
-          onClose={() => setContextMemo(null)}
-          onSelect={() => {
-            selectSingleMemo(contextMemo.id);
-            setContextMemo(null);
-          }}
-          onShare={() => {
-            shareMemoMutation.mutate(contextMemo);
-            setContextMemo(null);
-          }}
-          onShareImage={() => {
-            setContextMemo(null);
-            setImageShareFromList(true);
-            setSelectedMemoId(contextMemo.id);
-          }}
-          visible
-        />
-      ) : null}
 
       {notebookPickerOpen ? <NotebookPickerModal
         activeNotebookId={activeNotebookId}
@@ -1508,12 +1483,27 @@ export const WorkspaceScreen = ({
       {selectionMoreOpen ? <SelectionMoreModal
         bottomOffset={58 + safeAreaInsets.bottom}
         canPin={memoView !== "trash" && selectedMemoIds.size > 0 && !pinMemosMutation.isPending}
+        canShare={memoView !== "trash" && selectedMemoIds.size === 1 && selectedMemos.length === 1 && !selectedMemos[0]?.isDeleted && !shareMemoMutation.isPending}
         canToggleVisibleSelection={canToggleVisibleSelection}
         onClear={clearSelection}
         onClose={() => setSelectionMoreOpen(false)}
         onPin={() => {
           setSelectionMoreOpen(false);
           pinMemosMutation.mutate({ memoIds: selectedMemoIdList, isPinned: nextSelectionPinValue });
+        }}
+        onShare={() => {
+          const memo = selectedMemos[0];
+          if (!memo) return;
+          setSelectionMoreOpen(false);
+          shareMemoMutation.mutate(memo);
+        }}
+        onShareImage={() => {
+          const memo = selectedMemos[0];
+          if (!memo) return;
+          setSelectionMoreOpen(false);
+          clearSelection();
+          setImageShareFromList(true);
+          setSelectedMemoId(memo.id);
         }}
         onToggleVisibleSelection={() => {
           setSelectionMoreOpen(false);

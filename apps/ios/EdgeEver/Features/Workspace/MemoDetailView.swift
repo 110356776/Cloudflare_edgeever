@@ -8,6 +8,7 @@ struct MemoDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     let memoId: String
+    var initialShareImage = false
     /// Present editor from the parent `WorkspaceView` (more reliable than cover on a pushed page).
     var onEdit: (String, MemoEditInitialFocus) -> Void = { _, _ in }
 
@@ -50,6 +51,7 @@ struct MemoDetailView: View {
     @State private var imagePreview: (source: String, alt: String)?
     /// TipTap EditorBundle is ~4MB; keep native text visible until first setContent finishes.
     @State private var bodyReady = false
+    @State private var initialShareImageHandled = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -392,6 +394,10 @@ struct MemoDetailView: View {
             }
             refreshSyncStatus()
             TipTapWarmPool.warmIfNeeded()
+            openInitialShareImageIfReady()
+        }
+        .onChange(of: bodyReady) { _, _ in
+            openInitialShareImageIfReady()
         }
         .task(id: memoId) {
             // Re-load if mirror was empty on first paint (rare race during bootstrap).
@@ -1101,6 +1107,12 @@ struct MemoDetailView: View {
         try env.mirror.upsertMemo(scope: scope, memo: updated)
         memo = updated
         refreshSyncStatus()
+    }
+
+    private func openInitialShareImageIfReady() {
+        guard initialShareImage, bodyReady, memo?.isDeleted == false, !initialShareImageHandled else { return }
+        initialShareImageHandled = true
+        imageShareOptionsOpen = true
     }
 
     private func shareMemo(_ memo: MemoDetail) async {

@@ -472,14 +472,14 @@ const MemoCard = memo(function MemoCard({
           </Pressable>
         ) : null}
         <Pressable
-          accessibilityHint={selectionMode ? undefined : (resolvedLocale !== "zh-CN" ? "Long press for note actions" : "长按打开笔记操作")}
+          accessibilityHint={selectionMode ? undefined : (resolvedLocale !== "zh-CN" ? "Long press to select this note" : "长按选择这条笔记")}
           accessibilityLabel={memoTitle}
           accessibilityRole="button"
           delayLongPress={520}
-          onLongPress={() => {
+          onLongPress={onLongPress ? () => {
             handledLongPressRef.current = true;
-            onLongPress?.();
-          }}
+            onLongPress();
+          } : undefined}
           onPress={() => {
             if (handledLongPressRef.current) {
               handledLongPressRef.current = false;

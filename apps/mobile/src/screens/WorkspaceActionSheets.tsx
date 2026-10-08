@@ -154,51 +154,6 @@ export const NotesActionsModal = ({
   </Modal>
 );
 
-export const MemoContextActionsModal = ({
-  bottomOffset,
-  canShare,
-  memoTitle,
-  onClose,
-  onSelect,
-  onShare,
-  onShareImage,
-  visible,
-}: {
-  bottomOffset: number;
-  canShare: boolean;
-  memoTitle: string;
-  onClose: () => void;
-  onSelect: () => void;
-  onShare: () => void;
-  onShareImage: () => void;
-  visible: boolean;
-}) => (
-  <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
-    <Pressable onPress={onClose} style={[styles.actionSheetBackdrop, { paddingBottom: bottomOffset }]}>
-      <Pressable style={styles.listActionSheet}>
-        <View style={styles.actionSheetHandle} />
-        <View style={styles.listActionSheetHeader}>
-          <View style={styles.listActionSheetHeaderText}>
-            <Text numberOfLines={1} style={styles.actionSheetTitle}>笔记操作</Text>
-            <Text numberOfLines={1} style={styles.actionSheetSubtitle}>{memoTitle}</Text>
-          </View>
-          <Pressable accessibilityLabel="关闭" accessibilityRole="button" onPress={onClose} style={styles.sheetCloseButton}>
-            <X color="#0f172a" size={18} />
-          </Pressable>
-        </View>
-        {canShare ? (
-          <>
-            <ActionSheetItem icon={<Share2 color="#0f172a" size={18} />} label="分享笔记" onPress={onShare} />
-            <ActionSheetItem icon={<Image color="#0f172a" size={18} />} label="分享为图片" onPress={onShareImage} />
-            <View style={styles.listActionDivider} />
-          </>
-        ) : null}
-        <ActionSheetItem icon={<CheckSquare color="#0f172a" size={18} />} label="选择笔记" onPress={onSelect} />
-      </Pressable>
-    </Pressable>
-  </Modal>
-);
-
 const SelectionAction = ({
   danger = false,
   disabled = false,
@@ -265,10 +220,13 @@ export const SelectionActionBar = ({
 export const SelectionMoreModal = ({
   bottomOffset,
   canPin,
+  canShare,
   canToggleVisibleSelection,
   onClear,
   onClose,
   onPin,
+  onShare,
+  onShareImage,
   onToggleVisibleSelection,
   pinLabel,
   selectedCount,
@@ -277,10 +235,13 @@ export const SelectionMoreModal = ({
 }: {
   bottomOffset: number;
   canPin: boolean;
+  canShare: boolean;
   canToggleVisibleSelection: boolean;
   onClear: () => void;
   onClose: () => void;
   onPin: () => void;
+  onShare: () => void;
+  onShareImage: () => void;
   onToggleVisibleSelection: () => void;
   pinLabel: string;
   selectedCount: number;
@@ -311,6 +272,18 @@ export const SelectionMoreModal = ({
           icon={<Sparkles color={canPin ? "#0f172a" : "#cbd5e1"} size={18} />}
           label={pinLabel}
           onPress={onPin}
+        />
+        <ActionSheetItem
+          disabled={!canShare}
+          icon={<Share2 color={canShare ? "#0f172a" : "#cbd5e1"} size={18} />}
+          label="分享笔记"
+          onPress={onShare}
+        />
+        <ActionSheetItem
+          disabled={!canShare}
+          icon={<Image color={canShare ? "#0f172a" : "#cbd5e1"} size={18} />}
+          label="分享为图片"
+          onPress={onShareImage}
         />
         <ActionSheetItem icon={<X color="#0f172a" size={18} />} label="取消选择" onPress={onClear} />
       </Pressable>
