@@ -7,6 +7,9 @@ import {
   type NoteImageCardWidth,
 } from "@edgeever/shared/note-image-card";
 import * as Clipboard from "expo-clipboard";
+import { Directory, File, Paths } from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
 import { Image as RNImage, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text as RNText, View, type ImageStyle, type StyleProp, type TextStyle } from "react-native";
 import { Modal } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -499,6 +502,7 @@ export const MemoDetailModal = ({
   const [imageShareBranding, setImageShareBranding] = useState(true);
   const [viewerNotebookPickerOpen, setViewerNotebookPickerOpen] = useState(false);
   const [preparedNoteImage, setPreparedNoteImage] = useState<MobilePreparedNoteImage | null>(null);
+  const [imageSavePickerOpen, setImageSavePickerOpen] = useState(false);
   const [viewerGeneration, setViewerGeneration] = useState(0);
   const viewerRef = useRef<LocalTiptapEditorRef>(null);
   const imageExportIntentRef = useRef<"preview" | "share">("share");
@@ -860,7 +864,6 @@ export const MemoDetailModal = ({
 
     clearImageExportTimeout();
     try {
-      const { Directory, File, Paths } = await import("expo-file-system");
       const directory = new Directory(Paths.cache, "edgeever-note-exports");
       if (!directory.exists) directory.create({ idempotent: true, intermediates: true });
       const file = new File(directory, event.filename);
@@ -880,7 +883,6 @@ export const MemoDetailModal = ({
         setPreparedNoteImage(prepared);
       } else {
         setIsExportingImage(false);
-        const Sharing = await import("expo-sharing");
         if (!(await Sharing.isAvailableAsync())) throw new Error(resolvedLocale !== "zh-CN" ? "Sharing is unavailable on this device." : "当前设备无法打开系统分享面板。");
         await Sharing.shareAsync(file.uri, {
           dialogTitle: event.filename,
@@ -965,7 +967,6 @@ export const MemoDetailModal = ({
 
   const sharePreparedNoteImage = useCallback(async (prepared: MobilePreparedNoteImage) => {
     try {
-      const Sharing = await import("expo-sharing");
       if (!(await Sharing.isAvailableAsync())) throw new Error(resolvedLocale !== "zh-CN" ? "Sharing is unavailable on this device." : "当前设备无法打开系统分享面板。");
       await Sharing.shareAsync(prepared.uri, { dialogTitle: prepared.filename, mimeType: prepared.mimeType });
     } catch (shareError) {
@@ -976,37 +977,40 @@ export const MemoDetailModal = ({
     }
   }, [resolvedLocale]);
 
-  const copyPreparedNoteImage = useCallback(async (prepared: MobilePreparedNoteImage) => {
-    try {
-      const FileSystem = await import("expo-file-system/legacy");
-      const base64 = await FileSystem.readAsStringAsync(prepared.uri, { encoding: FileSystem.EncodingType.Base64 });
-      await Clipboard.setImageAsync(base64);
-      Alert.alert(resolvedLocale !== "zh-CN" ? "Copied" : "复制成功", resolvedLocale !== "zh-CN" ? "The image is on your clipboard." : "图片已复制到剪贴板。");
-    } catch {
-      Alert.alert(resolvedLocale !== "zh-CN" ? "Copy failed" : "复制失败", resolvedLocale !== "zh-CN" ? "Try saving the image instead." : "请尝试保存图片。" );
-    }
-  }, [resolvedLocale]);
-
   const savePreparedNoteImage = useCallback(async (prepared: MobilePreparedNoteImage) => {
+    // The Android directory picker needs the preview Modal to finish dismissing first.
+    setImageSavePickerOpen(true);
+    let destination: string | null = null;
     try {
-      const FileSystem = await import("expo-file-system/legacy");
-      const permission = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      const permission = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync(
+        FileSystem.StorageAccessFramework.getUriForDirectoryInRoot("Pictures")
+      );
       if (!permission.granted) return;
-      const destination = await FileSystem.StorageAccessFramework.createFileAsync(
+      destination = await FileSystem.StorageAccessFramework.createFileAsync(
         permission.directoryUri,
-        prepared.filename,
+        prepared.filename.replace(/\.[^.]+$/, ""),
         prepared.mimeType
       );
-      const base64 = await FileSystem.readAsStringAsync(prepared.uri, { encoding: FileSystem.EncodingType.Base64 });
+      const base64 = await new File(prepared.uri).base64();
       await FileSystem.StorageAccessFramework.writeAsStringAsync(destination, base64, {
         encoding: FileSystem.EncodingType.Base64,
       });
       Alert.alert(resolvedLocale !== "zh-CN" ? "Saved" : "保存成功", prepared.filename);
     } catch (saveError) {
+      if (destination) {
+        await FileSystem.StorageAccessFramework.deleteAsync(destination, { idempotent: true }).catch(() => {});
+      }
+      const message = saveError instanceof Error ? saveError.message : "";
+      const isUnwritableDirectory = /isn't writable|not writable|EACCES|Permission denied/i.test(message);
       Alert.alert(
         resolvedLocale !== "zh-CN" ? "Save failed" : "保存失败",
-        saveError instanceof Error ? saveError.message : (resolvedLocale !== "zh-CN" ? "Try again later." : "请稍后重试。")
+        isUnwritableDirectory
+          ? (resolvedLocale !== "zh-CN" ? "This folder cannot accept files. Choose a folder in internal storage, such as Pictures." : "此文件夹无法写入。请选择内部存储中的其他文件夹，例如“Pictures”。")
+          : (message || (resolvedLocale !== "zh-CN" ? "Try again later." : "请稍后重试。"))
       );
+    } finally {
+      setImageSavePickerOpen(false);
     }
   }, [resolvedLocale]);
 
@@ -1475,7 +1479,7 @@ export const MemoDetailModal = ({
             </Pressable>
           </Modal>
         ) : null}
-        <Modal animationType="fade" onRequestClose={preparedNoteImage ? closeImagePreview : closeImageShareOptions} transparent visible={imageShareOptionsOpen || Boolean(preparedNoteImage)}>
+        <Modal animationType="fade" onRequestClose={preparedNoteImage ? closeImagePreview : closeImageShareOptions} transparent visible={!imageSavePickerOpen && (imageShareOptionsOpen || Boolean(preparedNoteImage))}>
           {preparedNoteImage ? (
           <SafeAreaView style={imageShareStyles.previewSafeArea}>
             <View style={imageShareStyles.previewHeader}>
@@ -1511,10 +1515,6 @@ export const MemoDetailModal = ({
               ) : null}
             </ScrollView>
             <View style={imageShareStyles.previewActions}>
-              <Pressable accessibilityRole="button" onPress={() => void copyPreparedNoteImage(preparedNoteImage)} style={imageShareStyles.previewSecondaryButton}>
-                <Copy color="#0f172a" size={18} />
-                <Text style={imageShareStyles.previewSecondaryButtonText}>{resolvedLocale !== "zh-CN" ? "Copy" : "复制图片"}</Text>
-              </Pressable>
               <Pressable accessibilityRole="button" onPress={() => void savePreparedNoteImage(preparedNoteImage)} style={imageShareStyles.previewSecondaryButton}>
                 <Download color="#0f172a" size={18} />
                 <Text style={imageShareStyles.previewSecondaryButtonText}>{resolvedLocale !== "zh-CN" ? "Save" : "保存图片"}</Text>
