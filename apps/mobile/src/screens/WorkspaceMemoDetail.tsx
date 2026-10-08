@@ -217,7 +217,6 @@ const MOBILE_THEME_OPTIONS: Array<{
   previewBg: string;
   dotColor: string;
 }> = [
-  { id: "slate", labelZh: "经典浅色", labelEn: "Light", previewBg: "#f8fafc", dotColor: "#16a06e" },
   { id: "aurora", labelZh: "极光渐变", labelEn: "Aurora", previewBg: "#a7f3d0", dotColor: "#0d9488" },
   { id: "sunset", labelZh: "暮色晚霞", labelEn: "Sunset", previewBg: "#fde68a", dotColor: "#ea580c" },
   { id: "midnight", labelZh: "暗夜曜石", labelEn: "Midnight", previewBg: "#090d16", dotColor: "#34d399" },
@@ -508,7 +507,7 @@ export const MemoDetailModal = ({
   const [imageExportStage, setImageExportStage] = useState<"prepare" | "render" | "transfer">("prepare");
   const [imageShareOptionsOpen, setImageShareOptionsOpen] = useState(false);
   const [imageShareFormat, setImageShareFormat] = useState<"jpeg" | "png">("png");
-  const [imageShareTheme, setImageShareTheme] = useState<NoteImageTheme>("slate");
+  const [imageShareTheme, setImageShareTheme] = useState<NoteImageTheme>("aurora");
   const [imageShareFontStyle, setImageShareFontStyle] = useState<NoteImageFontStyle>("serif");
   const [imageShareFontSize, setImageShareFontSize] = useState<NoteImageFontSize>("lg");
   const [imageShareCardWidth, setImageShareCardWidth] = useState<NoteImageCardWidth>("standard");
@@ -969,7 +968,7 @@ export const MemoDetailModal = ({
       notebook: options.showNotebook === false ? "" : notebookName,
       tags: options.showTags === false ? [] : memo.tags,
       updatedAt: options.showUpdatedAt === false ? "" : new Date(memo.updatedAt).toLocaleString(resolvedLocale),
-      theme: options.theme ?? "slate",
+      theme: options.theme ?? "aurora",
       fontStyle: options.fontStyle ?? "serif",
       fontSize: options.fontSize ?? "lg",
       cardWidth: options.cardWidth ?? "standard",

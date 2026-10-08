@@ -2168,7 +2168,6 @@ export const ja = {
       theme: "テーマ",
       background: "背景",
       themes: {
-        slate: "クラシックライト",
         aurora: "オーロラ",
         sunset: "夕焼け",
         midnight: "ミッドナイト",

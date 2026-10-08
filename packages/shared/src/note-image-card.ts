@@ -317,7 +317,7 @@ export const resolveTheme = (background?: NoteImageBackground, theme?: NoteImage
   if (theme && NOTE_IMAGE_THEMES[theme]) return theme;
   if (background === "warm") return "sunset";
   if (background && NOTE_IMAGE_THEMES[background as NoteImageTheme]) return background as NoteImageTheme;
-  return "slate";
+  return "aurora";
 };
 
 export const buildImageExportBasename = (title: string, fallback: string) => {
@@ -345,7 +345,7 @@ export const buildNoteImageCardMarkup = ({
   tags = [],
   updatedAt = "",
   bodyHtml,
-  theme = "slate",
+  theme = "aurora",
   fontStyle = "serif",
   showTitle = true,
   showNotebook = false,
@@ -442,7 +442,7 @@ export const buildNoteImageCardMarkup = ({
 };
 
 export const generateCardCss = ({
-  theme = "slate",
+  theme = "aurora",
   fontStyle = "serif",
   fontSize = "lg",
   cardWidth = "standard",
@@ -452,7 +452,7 @@ export const generateCardCss = ({
   fontSize: NoteImageFontSize;
   cardWidth: NoteImageCardWidth;
 }) => {
-  const themeCfg = NOTE_IMAGE_THEMES[theme] || NOTE_IMAGE_THEMES.slate;
+  const themeCfg = NOTE_IMAGE_THEMES[theme] || NOTE_IMAGE_THEMES.aurora;
   const fontFam = NOTE_IMAGE_FONT_FAMILIES[fontStyle] || NOTE_IMAGE_FONT_FAMILIES.sans;
   const sizeCfg = NOTE_IMAGE_FONT_SIZES[fontSize] || NOTE_IMAGE_FONT_SIZES.md;
   const widthPx = NOTE_IMAGE_CARD_WIDTH_PIXELS[cardWidth] || 680;

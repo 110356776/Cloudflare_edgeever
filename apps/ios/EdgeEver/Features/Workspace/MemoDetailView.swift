@@ -23,7 +23,7 @@ struct MemoDetailView: View {
     @State private var imageExportBuffer = MemoImageExportBuffer()
     @State private var imageShareOptionsOpen = false
     @State private var imageShareFormat = "png"
-    @State private var imageShareTheme = "slate"
+    @State private var imageShareTheme = "aurora"
     @State private var imageShareFontStyle = "serif"
     @State private var imageShareFontSize = "lg"
     @State private var imageShareCardWidth = "standard"
@@ -186,7 +186,6 @@ struct MemoDetailView: View {
                 Form {
                     Section(env.preferences.t("主题风格", en: "Theme", pl: "Motyw")) {
                         Picker(env.preferences.t("主题风格", en: "Theme", pl: "Motyw"), selection: $imageShareTheme) {
-                            Text(env.preferences.t("经典浅色", en: "Light", pl: "Jasny")).tag("slate")
                             Text(env.preferences.t("极光渐变", en: "Aurora", pl: "Zorza")).tag("aurora")
                             Text(env.preferences.t("暮色晚霞", en: "Sunset", pl: "Zachód słońca")).tag("sunset")
                             Text(env.preferences.t("暗夜曜石", en: "Midnight", pl: "Północ")).tag("midnight")
@@ -1149,7 +1148,7 @@ struct MemoDetailView: View {
     private func exportMemoImage(
         _ memo: MemoDetail,
         format: String,
-        theme: String = "slate",
+        theme: String = "aurora",
         fontStyle: String = "serif",
         fontSize: String = "lg",
         cardWidth: String = "standard",

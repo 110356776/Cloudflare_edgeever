@@ -2166,7 +2166,6 @@ export const zhCN = {
       theme: "主题风格",
       background: "背景",
       themes: {
-        slate: "经典浅色",
         aurora: "极光渐变",
         sunset: "暮色晚霞",
         midnight: "暗夜曜石",

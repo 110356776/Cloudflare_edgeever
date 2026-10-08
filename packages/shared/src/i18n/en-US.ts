@@ -2168,7 +2168,6 @@ export const enUS = {
       theme: "Theme",
       background: "Background",
       themes: {
-        slate: "Classic Light",
         aurora: "Aurora",
         sunset: "Sunset",
         midnight: "Midnight",

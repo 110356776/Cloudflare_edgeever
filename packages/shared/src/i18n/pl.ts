@@ -2168,7 +2168,6 @@ export const pl = {
       theme: "Motyw",
       background: "Tło",
       themes: {
-        slate: "Klasyczny jasny",
         aurora: "Zorza",
         sunset: "Zachód słońca",
         midnight: "Północ",

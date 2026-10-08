@@ -1237,7 +1237,7 @@ async function exportNoteImage(request: ImageExportRequest) {
   const fontSize = request.fontSize ?? "lg";
   const cardWidth = request.cardWidth ?? "standard";
   const targetWidth = NOTE_IMAGE_CARD_WIDTH_PIXELS[cardWidth] || 680;
-  const themeCfg = NOTE_IMAGE_THEMES[resolvedTheme] || NOTE_IMAGE_THEMES.slate;
+  const themeCfg = NOTE_IMAGE_THEMES[resolvedTheme] || NOTE_IMAGE_THEMES.aurora;
 
   const editorClone = editor.view.dom.cloneNode(true) as HTMLElement;
   editorClone.removeAttribute("contenteditable");
