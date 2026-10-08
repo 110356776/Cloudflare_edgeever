@@ -93,6 +93,23 @@ const decodeBase64Chunks = (chunks: string[]) => {
   return output;
 };
 
+const getSavedImagePath = (destination: string) => {
+  if (!destination.startsWith("content://com.android.externalstorage.documents/")) return null;
+  const documentId = destination.match(/\/document\/([^?#]+)/)?.[1];
+  if (!documentId) return null;
+  try {
+    const decoded = decodeURIComponent(documentId);
+    const separator = decoded.indexOf(":");
+    if (separator < 0) return null;
+    const volume = decoded.slice(0, separator);
+    const relativePath = decoded.slice(separator + 1).replace(/^\/+/, "");
+    if (!relativePath) return null;
+    return `${volume === "primary" ? "/storage/emulated/0" : `/storage/${volume}`}/${relativePath}`;
+  } catch {
+    return null;
+  }
+};
+
 type SessionLike = { baseUrl: string; token: string } | null;
 type AuthenticatedImageSource = {
   headers?: { Authorization: string };
@@ -503,6 +520,8 @@ export const MemoDetailModal = ({
   const [viewerNotebookPickerOpen, setViewerNotebookPickerOpen] = useState(false);
   const [preparedNoteImage, setPreparedNoteImage] = useState<MobilePreparedNoteImage | null>(null);
   const [imageSavePickerOpen, setImageSavePickerOpen] = useState(false);
+  const [savedImagePath, setSavedImagePath] = useState<string | null>(null);
+  const savedImageTipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [viewerGeneration, setViewerGeneration] = useState(0);
   const viewerRef = useRef<LocalTiptapEditorRef>(null);
   const imageExportIntentRef = useRef<"preview" | "share">("share");
@@ -810,6 +829,10 @@ export const MemoDetailModal = ({
 
   useEffect(() => clearImageExportTimeout, [clearImageExportTimeout]);
 
+  useEffect(() => () => {
+    if (savedImageTipTimerRef.current !== null) clearTimeout(savedImageTipTimerRef.current);
+  }, []);
+
   useEffect(() => {
     if (visible) return;
     clearImageExportTimeout();
@@ -818,6 +841,8 @@ export const MemoDetailModal = ({
     setIsExportingImage(false);
     setImageShareOptionsOpen(false);
     setPreparedNoteImage(null);
+    setSavedImagePath(null);
+    if (savedImageTipTimerRef.current !== null) clearTimeout(savedImageTipTimerRef.current);
   }, [clearImageExportTimeout, visible]);
 
   const failImageExport = useCallback((message?: string) => {
@@ -981,6 +1006,7 @@ export const MemoDetailModal = ({
     // The Android directory picker needs the preview Modal to finish dismissing first.
     setImageSavePickerOpen(true);
     let destination: string | null = null;
+    let savedPath: string | null = null;
     try {
       await new Promise((resolve) => setTimeout(resolve, 120));
       const permission = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync(
@@ -996,7 +1022,8 @@ export const MemoDetailModal = ({
       await FileSystem.StorageAccessFramework.writeAsStringAsync(destination, base64, {
         encoding: FileSystem.EncodingType.Base64,
       });
-      Alert.alert(resolvedLocale !== "zh-CN" ? "Saved" : "保存成功", prepared.filename);
+      savedPath = getSavedImagePath(destination)
+        ?? (resolvedLocale !== "zh-CN" ? `Selected folder / ${prepared.filename}` : `所选文件夹 / ${prepared.filename}`);
     } catch (saveError) {
       if (destination) {
         await FileSystem.StorageAccessFramework.deleteAsync(destination, { idempotent: true }).catch(() => {});
@@ -1011,6 +1038,14 @@ export const MemoDetailModal = ({
       );
     } finally {
       setImageSavePickerOpen(false);
+    }
+    if (savedPath) {
+      if (savedImageTipTimerRef.current !== null) clearTimeout(savedImageTipTimerRef.current);
+      setSavedImagePath(savedPath);
+      savedImageTipTimerRef.current = setTimeout(() => {
+        setSavedImagePath(null);
+        savedImageTipTimerRef.current = null;
+      }, 4_000);
     }
   }, [resolvedLocale]);
 
@@ -1524,6 +1559,14 @@ export const MemoDetailModal = ({
                 <Text style={imageShareStyles.previewPrimaryButtonText}>{resolvedLocale !== "zh-CN" ? "Share" : "系统分享"}</Text>
               </Pressable>
             </View>
+            {savedImagePath ? (
+              <View accessibilityLiveRegion="polite" pointerEvents="none" style={imageShareStyles.savedImageTipContainer}>
+                <View style={imageShareStyles.savedImageTip}>
+                  <Text style={imageShareStyles.savedImageTipTitle}>{resolvedLocale !== "zh-CN" ? "Saved to" : "图片已保存至"}</Text>
+                  <Text style={imageShareStyles.savedImageTipPath}>{savedImagePath}</Text>
+                </View>
+              </View>
+            ) : null}
           </SafeAreaView>
           ) : (
           <Pressable
@@ -1995,6 +2038,32 @@ const imageShareStyles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 13,
     fontWeight: "800",
+  },
+  savedImageTipContainer: {
+    alignItems: "center",
+    bottom: 100,
+    left: 16,
+    position: "absolute",
+    right: 16,
+  },
+  savedImageTip: {
+    backgroundColor: "#0f172a",
+    borderRadius: 12,
+    maxWidth: 520,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    width: "100%",
+  },
+  savedImageTipTitle: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  savedImageTipPath: {
+    color: "#cbd5e1",
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 4,
   },
 });
 
