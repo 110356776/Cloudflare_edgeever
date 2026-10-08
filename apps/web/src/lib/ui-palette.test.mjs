@@ -35,7 +35,7 @@ describe("application color system", () => {
     expect(settings).not.toContain("text-emerald-");
     expect(contrastRatio("#ffffff", "#525252")).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio("#ffffff", "#1a1d21")).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio("#101010", "#e8e8e8")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#121315", "#e8e8e8")).toBeGreaterThanOrEqual(4.5);
   });
 
   test("keeps the light workspace on a cool gray palette while preserving text hierarchy", () => {
@@ -63,16 +63,16 @@ describe("application color system", () => {
   });
 
   test("keeps dark workspace surfaces distinct and neutral", () => {
-    expect(globals).toContain("--workspace-canvas: #101010;");
-    expect(globals).toContain("--workspace-sidebar: #141414;");
-    expect(globals).toContain("--workspace-memo-list: #181818;");
-    expect(globals).toContain("--workspace-editor: #1c1c1c;");
+    expect(globals).toContain("--workspace-canvas: #121315;");
+    expect(globals).toContain("--workspace-sidebar: #17181a;");
+    expect(globals).toContain("--workspace-memo-list: #1d1e20;");
+    expect(globals).toContain("--workspace-editor: #222325;");
     expect(globals).toContain("--foreground: 0 0% 87%;");
     expect(globals).toContain("--border: 0 0% 23%;");
     expect(globals).toContain("--amber-300-rgb: 180 83 9;");
     expect(globals).not.toContain("scrollbar-color: rgba(100, 116, 139, 0.18)");
-    expect(contrastRatio("#dedede", "#1c1c1c")).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio("#a3a3a3", "#1c1c1c")).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio("#a0a0a0", "#1c1c1c")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#dedede", "#222325")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#a3a3a3", "#222325")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#a0a0a0", "#222325")).toBeGreaterThanOrEqual(4.5);
   });
 });

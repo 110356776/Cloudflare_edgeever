@@ -388,18 +388,18 @@
   --border: 0 0% 23%;
   --input: 0 0% 23%;
   --ring: 0 0% 75%;
-  --workspace-canvas: #101010;
-  --workspace-sidebar: #141414;
-  --workspace-memo-list: #181818;
-  --workspace-editor: #1c1c1c;
-  --workspace-divider: #303030;
-  --workspace-memo-divider: #404040;
-  --workspace-selection: #303030;
-  --workspace-hover: color-mix(in srgb, var(--workspace-sidebar) 82%, white);
-  --memo-content-divider-color: #e8e8e8;
-  --tooltip-bg: #2c2c2c;
+  --workspace-canvas: #121315;
+  --workspace-sidebar: #17181a;
+  --workspace-memo-list: #1d1e20;
+  --workspace-editor: #222325;
+  --workspace-divider: #323437;
+  --workspace-memo-divider: #383a3d;
+  --workspace-selection: #333638;
+  --workspace-hover: color-mix(in srgb, var(--workspace-sidebar) 90%, white);
+  --memo-content-divider-color: #62666b;
+  --tooltip-bg: #303234;
   --tooltip-fg: #dedede;
-  --tooltip-border: #454545;
+  --tooltip-border: #45474a;
   --tooltip-shadow: 0 1px 2px rgb(0 0 0 / 0.28), 0 8px 20px rgb(0 0 0 / 0.32);
   --scrollbar-thumb: rgb(145 145 145 / 0.38);
   --scrollbar-thumb-hover: rgb(145 145 145 / 0.55);
@@ -407,9 +407,9 @@
   --search-match-active: rgb(36 185 134 / 0.48);
   --switch-thumb: #f0f0f0;
   --switch-track-on: #e8e8e8;
-  --switch-thumb-on: #101010;
+  --switch-thumb-on: #121315;
   --checkbox-on: #e8e8e8;
-  --checkbox-mark: #101010;
+  --checkbox-mark: #121315;
   --slate-50-rgb: 17 17 17;
   --slate-100-rgb: 25 25 25;
   --slate-200-rgb: 43 43 43;
@@ -439,7 +439,7 @@
   --rose-800-rgb: 254 205 211;
   --rose-950-rgb: 255 241 242;
   --blue-600-rgb: 147 197 253;
-  --dark-surface-rgb: 28 28 28;
+  --dark-surface-rgb: 34 35 37;
   --brand-green: #16a06e;
   --brand-green-hover: #24b986;
   --brand-green-muted: #183a31;
@@ -2590,8 +2590,8 @@ html[data-edgeever-extension-theme] .edgeever-memo-divider {
 
 :root.dark .ProseMirror th,
 :root.dark .markdown-content th {
-  background: rgb(var(--slate-100-rgb) / 0.9);
-  color: #f1f5f9;
+  background: rgb(255 255 255 / 0.035);
+  color: hsl(var(--foreground));
 }
 
 :root.dark .ProseMirror .tableWrapper,
@@ -2610,12 +2610,12 @@ html[data-edgeever-extension-theme] .edgeever-memo-divider {
 
 :root.dark .ProseMirror tbody tr:nth-child(even) td,
 :root.dark .markdown-content tbody tr:nth-child(even) td {
-  background: rgb(var(--slate-50-rgb) / 0.6);
+  background: rgb(255 255 255 / 0.02);
 }
 
 :root.dark .ProseMirror tbody tr:hover td,
 :root.dark .markdown-content tbody tr:hover td {
-  background: rgb(var(--slate-100-rgb) / 0.8);
+  background: rgb(255 255 255 / 0.055);
 }
 
 :root.dark .edgeever-paper,

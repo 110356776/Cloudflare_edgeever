@@ -42,7 +42,7 @@ describe("dark theme contracts", () => {
     const memoCard = readFileSync(new URL("../components/MemoCard.tsx", import.meta.url), "utf8");
     expect(css).toContain(":root.dark .edgeever-public-share .ProseMirror");
     expect(css).toContain("color: hsl(var(--foreground));");
-    expect(css).toContain("--workspace-memo-divider: #404040;");
+    expect(css).toContain("--workspace-memo-divider: #383a3d;");
     expect(css).toContain(":root.dark .edgeever-workspace-memo-list .edgeever-memo-divider");
     expect(memoCard).toContain("edgeever-memo-divider");
     expect(memoCard).not.toContain("dark:lg:border-slate-300");
@@ -67,21 +67,23 @@ describe("dark theme contracts", () => {
   test("workspace dark surfaces stay neutral and bundled editor themes blend into the canvas", () => {
     const css = readFileSync(new URL("../styles/globals.css", import.meta.url), "utf8");
 
-    expect(css).toContain("--workspace-canvas: #101010;");
-    expect(css).toContain("--workspace-sidebar: #141414;");
-    expect(css).toContain("--workspace-memo-list: #181818;");
-    expect(css).toContain("--workspace-editor: #1c1c1c;");
+    expect(css).toContain("--workspace-canvas: #121315;");
+    expect(css).toContain("--workspace-sidebar: #17181a;");
+    expect(css).toContain("--workspace-memo-list: #1d1e20;");
+    expect(css).toContain("--workspace-editor: #222325;");
+    expect(css).toContain("--workspace-selection: #333638;");
+    expect(css).toContain("--workspace-hover: color-mix(in srgb, var(--workspace-sidebar) 90%, white);");
     expect(css).toContain("--slate-500-rgb: 161 161 161;");
     expect(css).toContain(':not([data-editor-theme="custom"])');
     expect(css).toContain("--editor-theme-bg: var(--workspace-editor);");
-    expect(contrastRatio("#dedede", "#1c1c1c")).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio("#a3a3a3", "#1c1c1c")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#dedede", "#222325")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio("#a3a3a3", "#222325")).toBeGreaterThanOrEqual(4.5);
   });
 
   test("dark chrome uses workspace tokens instead of leftover blue-slate", () => {
     const css = readFileSync(new URL("../styles/globals.css", import.meta.url), "utf8");
 
-    expect(css).toContain("--tooltip-bg: #2c2c2c;");
+    expect(css).toContain("--tooltip-bg: #303234;");
     expect(css).toContain("--scrollbar-thumb: rgb(145 145 145 / 0.38);");
     expect(css).toContain("--search-match: rgb(22 160 110 / 0.32);");
     expect(css).toContain(":root.dark .ProseMirror .edgeever-mermaid-preview");
@@ -98,9 +100,9 @@ describe("dark theme contracts", () => {
       const { tokens } = readDarkThemeTokens(theme);
 
       expect(tokens.bg).toBe("var(--workspace-editor)");
-      expect(contrastRatio(tokens.text, "#1c1c1c")).toBeGreaterThanOrEqual(4.5);
-      expect(contrastRatio(tokens.heading, "#1c1c1c")).toBeGreaterThanOrEqual(4.5);
-      expect(contrastRatio(tokens.accent, "#1c1c1c")).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(tokens.text, "#222325")).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(tokens.heading, "#222325")).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(tokens.accent, "#222325")).toBeGreaterThanOrEqual(3);
       expect(contrastRatio(tokens.muted, tokens.soft)).toBeGreaterThanOrEqual(4.5);
       expect(contrastRatio(tokens["code-text"], tokens["code-bg"])).toBeGreaterThanOrEqual(4.5);
     }

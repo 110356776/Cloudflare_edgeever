@@ -10,7 +10,7 @@ const previewBaseCss = `
   color: #27272a;
 }
 .${NOTE_PROSE_CSS_PREVIEW_DARK_CLASS} .edgeever-editor {
-  background: #1c1c1c;
+  background: #222325;
   color: #dedede;
 }
 .ProseMirror {
