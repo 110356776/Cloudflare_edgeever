@@ -1746,6 +1746,16 @@ export const pl = {
     confirmImport: "Importuj",
   },
   shortcuts: {
+    global: {
+      label: "Pokaż lub ukryj okno aplikacji",
+      description: "Działa także w innych aplikacjach. Skrót jest zapisany tylko na tym urządzeniu.",
+      disabled: "Nie ustawiono",
+      disable: "Wyłącz",
+      requireModifiers: "Użyj litery, cyfry lub F1–F12 z co najmniej dwoma klawiszami modyfikującymi.",
+      invalid: "Ta kombinacja klawiszy nie jest obsługiwana.",
+      unavailable: "System nie mógł zarejestrować skrótu. Wybierz inną kombinację lub sprawdź ustawienia systemowe.",
+      saveFailed: "Nie udało się zapisać skrótu. Spróbuj ponownie.",
+    },
     title: "Skróty klawiszowe",
     manage: "Zarządzaj",
     description: "Ustaw kombinacje klawiszy dla częstych działań na notatkach. Naciśnij Esc, aby przerwać nagrywanie.",

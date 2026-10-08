@@ -1746,6 +1746,16 @@ export const zhCN = {
     confirmImport: "确认导入",
   },
   shortcuts: {
+    global: {
+      label: "显示或隐藏桌面窗口",
+      description: "在其他应用中也可使用。此快捷键只保存在当前设备。",
+      disabled: "未设置",
+      disable: "停用",
+      requireModifiers: "请使用字母、数字或 F1–F12，并同时按下至少两个修饰键。",
+      invalid: "不支持这个组合键。",
+      unavailable: "系统未能注册这个快捷键。请换一个组合键，或检查系统快捷键设置。",
+      saveFailed: "无法保存快捷键，请重试。",
+    },
     title: "绑定快捷键",
     manage: "管理",
     description: "为常用笔记动作设置组合键。按 Esc 可取消当前录制。",

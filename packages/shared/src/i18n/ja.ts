@@ -1746,6 +1746,16 @@ export const ja = {
     confirmImport: "取り込む",
   },
   shortcuts: {
+    global: {
+      label: "デスクトップウィンドウの表示・非表示",
+      description: "他のアプリからも使用できます。このショートカットはこの端末にのみ保存されます。",
+      disabled: "未設定",
+      disable: "無効にする",
+      requireModifiers: "文字、数字、または F1～F12 と修飾キーを2つ以上押してください。",
+      invalid: "このキーの組み合わせには対応していません。",
+      unavailable: "システムに登録できませんでした。別の組み合わせを選ぶか、システム設定を確認してください。",
+      saveFailed: "ショートカットを保存できませんでした。再試行してください。",
+    },
     title: "キーボードショートカット",
     manage: "管理",
     description: "よく使うノート操作のキー組み合わせを設定します。Esc で記録をキャンセルします。",
