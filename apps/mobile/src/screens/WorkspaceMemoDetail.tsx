@@ -1679,40 +1679,41 @@ export const MemoDetailModal = ({
                   </Pressable>
                 ))}
               </View>
-
-              <Pressable
-                accessibilityRole="button"
-                disabled={isExportingImage || !viewerReady}
-                onPress={() => {
-                  exportMemoImage(imageShareFormat, {
-                    theme: imageShareTheme,
-                    fontStyle: imageShareFontStyle,
-                    fontSize: imageShareFontSize,
-                    cardWidth: imageShareCardWidth,
-                    showTitle: imageShareTitle,
-                    showNotebook: imageShareNotebook,
-                    showTags: imageShareTags,
-                    showUpdatedAt: imageShareUpdatedAt,
-                    showBranding: imageShareBranding,
-                    intent: "preview",
-                  });
-                }}
-                style={[imageShareStyles.shareButton, (isExportingImage || !viewerReady) && styles.buttonDisabled]}
-              >
-                {isExportingImage ? <ActivityIndicator color="#ffffff" size="small" /> : <Share2 color="#ffffff" size={18} />}
-                <Text style={imageShareStyles.shareButtonText}>
-                  {isExportingImage
-                    ? (imageExportStage === "render"
-                      ? (resolvedLocale !== "zh-CN" ? "Rendering image…" : "正在渲染图片…")
-                      : imageExportStage === "transfer"
-                        ? (resolvedLocale !== "zh-CN" ? "Saving preview…" : "正在保存预览…")
-                        : (resolvedLocale !== "zh-CN" ? "Preparing image…" : "正在准备图片…"))
-                    : !viewerReady
-                    ? (resolvedLocale !== "zh-CN" ? "Preparing note…" : "正在准备笔记…")
-                    : (resolvedLocale !== "zh-CN" ? "Generate preview" : "生成预览")}
-                </Text>
-              </Pressable>
               </ScrollView>
+              <View style={imageShareStyles.sheetFooter}>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={isExportingImage || !viewerReady}
+                  onPress={() => {
+                    exportMemoImage(imageShareFormat, {
+                      theme: imageShareTheme,
+                      fontStyle: imageShareFontStyle,
+                      fontSize: imageShareFontSize,
+                      cardWidth: imageShareCardWidth,
+                      showTitle: imageShareTitle,
+                      showNotebook: imageShareNotebook,
+                      showTags: imageShareTags,
+                      showUpdatedAt: imageShareUpdatedAt,
+                      showBranding: imageShareBranding,
+                      intent: "preview",
+                    });
+                  }}
+                  style={[imageShareStyles.shareButton, (isExportingImage || !viewerReady) && styles.buttonDisabled]}
+                >
+                  {isExportingImage ? <ActivityIndicator color="#ffffff" size="small" /> : <Share2 color="#ffffff" size={18} />}
+                  <Text style={imageShareStyles.shareButtonText}>
+                    {isExportingImage
+                      ? (imageExportStage === "render"
+                        ? (resolvedLocale !== "zh-CN" ? "Rendering image…" : "正在渲染图片…")
+                        : imageExportStage === "transfer"
+                          ? (resolvedLocale !== "zh-CN" ? "Saving preview…" : "正在保存预览…")
+                          : (resolvedLocale !== "zh-CN" ? "Preparing image…" : "正在准备图片…"))
+                      : !viewerReady
+                      ? (resolvedLocale !== "zh-CN" ? "Preparing note…" : "正在准备笔记…")
+                      : (resolvedLocale !== "zh-CN" ? "Generate preview" : "生成预览")}
+                  </Text>
+                </Pressable>
+              </View>
             </Pressable>
           </Pressable>
           )}
@@ -1835,13 +1836,18 @@ export const MemoDetailModal = ({
 const imageShareStyles = StyleSheet.create({
   sheetContainer: {
     height: "85%",
-    paddingBottom: 24,
+    paddingBottom: 16,
   },
   optionsContent: {
-    paddingBottom: 48,
+    paddingBottom: 16,
   },
   optionsScroll: {
     flex: 1,
+  },
+  sheetFooter: {
+    borderTopColor: "#e2e8f0",
+    borderTopWidth: 1,
+    paddingTop: 12,
   },
   themeGrid: {
     flexDirection: "row",
@@ -1945,7 +1951,6 @@ const imageShareStyles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     justifyContent: "center",
-    marginTop: 16,
     minHeight: 48,
   },
   shareButtonText: {
